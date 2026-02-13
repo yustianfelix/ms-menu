@@ -1,2 +1,2 @@
 # ms-menu
-Menu API
+Menu REST API
