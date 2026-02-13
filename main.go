@@ -1,35 +1,42 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-// MenuItem represents the data structure for a menu item
 type MenuItem struct {
 	ID    string  `json:"id"`
 	Name  string  `json:"name"`
 	Price float64 `json:"price"`
 }
 
-// In-memory data store
 var menu = []MenuItem{
 	{ID: "1", Name: "Coffee", Price: 35000},
 	{ID: "2", Name: "Tea", Price: 15000},
 }
 
-func getMenu(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(menu)
-}
-
 func main() {
-	// Define routes
-	http.HandleFunc("/menu", getMenu)
+	// 1. Initialize the Gin router
+	router := gin.Default()
 
-	fmt.Println("Server starting on :8080...")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		fmt.Printf("Error starting server: %s\n", err)
-	}
+	// 2. Define Routes
+	router.GET("/menu", func(c *gin.Context) {
+		c.JSON(http.StatusOK, menu)
+	})
+
+	router.POST("/menu", func(c *gin.Context) {
+		var newItem MenuItem
+		// Bind JSON request body to MenuItem struct
+		if err := c.ShouldBindJSON(&newItem); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		menu = append(menu, newItem)
+		c.JSON(http.StatusCreated, newItem)
+	})
+
+	// 3. Start the server (Defaults to :8080)
+	router.Run()
 }
