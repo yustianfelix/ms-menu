@@ -1,17 +1,23 @@
 package main
 
 import (
-	"ms-menu/controllers"
-
-	"github.com/gin-gonic/gin"
+	"log"
+	"your-module/controllers"
+	"your-module/routes"
+	"your-module/services"
 )
 
 func main() {
-	router := gin.Default()
+	// 1. Initialize dependencies (DB, Services, Controllers)
+	menuService := services.NewMenuService()
+	menuController := controllers.NewMenuController(menuService)
 
-	// Routes point to Controller functions
-	router.GET("/menu", controllers.GetMenu)
-	router.POST("/menu", controllers.AddMenuItem)
+	// 2. Setup Router
+	r := routes.SetupRouter(menuController)
 
-	router.Run(":8080")
+	// 3. Start Server
+	log.Println("Starting server on :8080")
+	if err := r.Run(":8080"); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }
